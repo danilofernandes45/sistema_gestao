@@ -1,19 +1,20 @@
+package br.com.ufal.activity;
 import java.util.ArrayList;
+
+import br.com.ufal.user.User;
 public class Activity {
 	
 	private String title;
 	private String description;
 	private String material;
-	private TypeAct type;
 	private ArrayList<User> participants = new ArrayList<>();
 	
 	public Activity() {}
 	
-	public Activity(String title, String description, String material, TypeAct type, ArrayList<User> participants) {
+	public Activity(String title, String description, String material, ArrayList<User> participants) {
 		this.title = title;
 		this.description = description;
 		this.material = material;
-		this.type = type;
 		this.participants = participants;
 	}
 	
@@ -35,12 +36,7 @@ public class Activity {
 	public void setMaterial(String material) {
 		this.material = material;
 	}
-	public TypeAct getType() {
-		return type;
-	}
-	public void setType(TypeAct type) {
-		this.type = type;
-	}
+
 	public ArrayList<User> getParticipants() {
 		return participants;
 	}

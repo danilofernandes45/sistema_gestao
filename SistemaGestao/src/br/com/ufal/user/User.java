@@ -1,3 +1,4 @@
+package br.com.ufal.user;
 
 public class User {
 	
@@ -5,16 +6,14 @@ public class User {
 	private String email;
 	private String login;
 	private String password;
-	private TypeUser type;
 	
 	public User() {}
 	
-	public User(String name, String email, String login, String password, TypeUser type) {
+	public User(String name, String email, String login, String password) {
 		this.name = name;
 		this.email = email;
 		this.login = login;
 		this.password = password;
-		this.type = type;
 	}
 	public String getName() {
 		return name;
@@ -40,10 +39,10 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public TypeUser getType() {
-		return type;
-	}
-	public void setType(TypeUser type) {
-		this.type = type;
+	
+	public String toString() {
+		
+		return "Nome : "+name+"\nEmail: "+email;
+		
 	}
 }

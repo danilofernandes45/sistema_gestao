@@ -1,3 +1,11 @@
+package br.com.ufal.allocation;
+import br.com.ufal.activity.Activity;
+import br.com.ufal.resource.Resource;
+import br.com.ufal.user.User;
+import br.com.ufal.util.Date;
+import br.com.ufal.util.Status;
+import br.com.ufal.util.Time;
+
 
 public class Allocation {
 	

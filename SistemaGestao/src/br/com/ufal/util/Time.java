@@ -1,3 +1,4 @@
+package br.com.ufal.util;
 
 public class Time {
 	private int hour = 0;
