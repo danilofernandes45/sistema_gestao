@@ -96,7 +96,34 @@ public class Allocation {
 		this.activity = activity;
 	}
 	
+	public String getStringStatus() {
+		
+		if(this.status == Status.IN_PROCESS)
+			return "Em processo";
+		if(this.status == Status.ALLOCATED)
+			return "Alocado";
+		if(this.status == Status.IN_PROGRESS)
+			return "Em andamento";
+		
+		return "Concluido";
+		
+	}
 	
+	public String printWithoutResource() {
+		
+		return "Usuário: "+this.requester.getName()+"\n"
+				 + "Atividade: "+this.activity.getTitle()+"\n"
+				+ "Status: "+getStringStatus();
+		
+	}
+	
+	public String printWithoutRequester() {
+		
+		return "Recurso: "+this.resource.getId()+"\n"
+				 + "Atividade: "+this.activity.getTitle()+"\n"
+				+ "Status: "+getStringStatus();
+		
+	}
 	
 	
 	

@@ -2,19 +2,13 @@ package br.com.ufal.ui;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import br.com.ufal.activity.Activity;
+import br.com.ufal.activity.*;
+import br.com.ufal.activity.Class;
 import br.com.ufal.allocation.Allocation;
 import br.com.ufal.database.Database;
-import br.com.ufal.resource.Auditorium;
-import br.com.ufal.resource.Laboratory;
-import br.com.ufal.resource.Resource;
-import br.com.ufal.user.Administrator;
-import br.com.ufal.user.Professor;
-import br.com.ufal.user.Researcher;
-import br.com.ufal.user.User;
-import br.com.ufal.util.Date;
-import br.com.ufal.util.Status;
-import br.com.ufal.util.Time;
+import br.com.ufal.resource.*;
+import br.com.ufal.user.*;
+import br.com.ufal.util.*;
 
 
 public class UI {
@@ -197,17 +191,9 @@ public class UI {
 		
 		ArrayList<Allocation> allocations = database.getAllocationsByResource(resource);
 		
-		for(Allocation alloc : allocations) {	//MUDAR AQUI!!!!!!!!
-			if(alloc.getResource().getId().equals(resource.getId())) {
-				
-				System.out.println("Usuário: "+alloc.getRequester().getName()+"\n"
-								 + "Atividade: "+alloc.getActivity().getTitle()+"\n");
-				
-				printStatus(alloc);
-				hasAllocations = true;
-					
-			}
-		}
+		for(Allocation alloc : allocations) 
+			System.out.println(alloc.printWithoutResource()+"\n");
+			
 		if(allocations.size() == 0)
 			System.out.println("[Sem alocações]\n");
 			
@@ -226,96 +212,57 @@ public class UI {
 		System.out.println(user);
 		
 		System.out.println("Alocações:\n");
-		boolean hasAllocations = false;
 		
 		ArrayList<Allocation> allocations = database.getAllocationsByRequester(user);
 		
-		for(Allocation alloc : allocations) {
-			if(alloc.getRequester().getLogin().equals(user.getLogin())) {
-				
-				System.out.println("Recurso: "+alloc.getResource().getId()+"\n"
-								 + "Atividade: "+alloc.getActivity().getTitle()+"\n");
-				
-				printStatus(alloc);
-				hasAllocations = true;
-					
-			}
-		}
-		if(!hasAllocations)
+		for(Allocation alloc : allocations) 
+			System.out.println(alloc.printWithoutRequester()+"\n");
+		
+		if(allocations.size() == 0)
 			System.out.println("[Sem alocações]\n");
 	}
-	
-	public static void printStatus(Allocation alloc) {
-		
-		if( alloc.getStatus() == Status.IN_PROCESS )
-			System.out.println("Status: Em processo");
-		else if( alloc.getStatus() == Status.ALLOCATED )
-			System.out.println("Status: Alocado");
-		else if( alloc.getStatus() == Status.IN_PROGRESS )
-			System.out.println("Status: Em andamento");
-		else
-			System.out.println("Status: Concluído");
-		
-		System.out.println("\n----------------------------\n");
-		
-	}
 
-	private static void generateReport() {
+	private void generateReport() {
 		
 		System.out.println("--------------------RELATÓRIO----------------------\n\n" 
-						  + "Número de usuários: "+users.size());
+						  + "Número de usuários: "+database.getSizeUsers());
 		
-		int in_process_size = id_alloc_in_process.size();
-		int allocated_size = id_allocated.size();
-		int in_progress_size = id_in_progress.size();
-		int alloc_size = allocations.size();
+		int in_process_size = database.getSizeAllocInProcess();
+		int allocated_size = database.getSizeAllocated();
+		int in_progress_size = database.getSizeAllocInProgress();
+		int alloc_completed = database.getSizeAllocCompleted();
 		
-		int num_class = 0;
-		int num_lab = 0;
-		int num_pres = 0;
-		for(Activity act: activities) {
-			
-			if(act.getType() == TypeAct.CLASS)
-				num_class++;
-			else if(act.getType() == TypeAct.PRESANTATION)
-				num_pres++;
-			else
-				num_lab++;
-		}
 		
 		System.out.println("\nNúmero de recursos em processo de alocação: "+in_process_size
 						  +"\nNúmero de recursos alocados: "+allocated_size
 						  +"\nNúmero de recursos 'em andamento': "+in_progress_size
-						  +"\nNúmero de recursos 'concluídos': "+(alloc_size - in_process_size - in_progress_size - allocated_size)
-						  +"\nNúmero total de alocações: "+alloc_size
+						  +"\nNúmero de recursos 'concluídos': "+alloc_completed
+						  +"\nNúmero total de alocações: "+( alloc_completed + in_process_size + in_progress_size + allocated_size )
 						  +"\n\nNúmero de atividades por tipo:\n"
-						  +"\n- Aulas tradicionais: "+num_class
-						  +"\n- Laboratórios: "+num_lab
-						  +"\n- Apresentações: "+num_pres);
+						  +"\n- Aulas tradicionais: "+database.getAmountClasses()
+						  +"\n- Laboratórios: "+database.getAmountActLaboratories()
+						  +"\n- Apresentações: "+database.getAmountPresentations());
 		System.out.println("---------------------------------------------------\n");
 		
 		
 	}
 
-	private static void deleteResource() {
+	private void deleteResource() {
 		
 		System.out.println("Digite o id do recurso: ");
-		int index = searchResource( input.nextLine() );
+		Resource res = database.searchResource( input.nextLine() );
 		
-		if(index == -1)
+		if(res == null)
 			System.out.println("Recurso não encontrado!");
 		else {
-			resources.remove(index);
+			database.removeResource(res);
 			System.out.println("Feito!\n");
 		}
 		
 	}
 
-	private static void createResource() {
+	private void createResource() {
 		
-		Resource resource = new Resource();
-		System.out.println("Digite a identificação (id): ");
-		resource.setId( input.nextLine() );
 		System.out.println("Digite o tipo: \n"
 						 + "1 - Laboratório\n"
 						 + "2 - Auditório\n"
@@ -323,29 +270,32 @@ public class UI {
 						 + "4 - Projetor");
 		int type = Integer.valueOf( input.nextLine() );
 		
+		Resource resource;
 		if(type == 1)
-			resource.setType(TypeRes.LABORATORY);
+			resource = new Laboratory();
 		else if(type == 2)
-			resource.setType(TypeRes.AUDITORIUM);
+			resource = new Auditorium();
 		else if(type == 3)
-			resource.setType(TypeRes.CLASSROOM);
+			resource = new Classroom();
 		else
-			resource.setType(TypeRes.PROJECTOR);
+			resource = new Projector();
+		
+		System.out.println("Digite a identificação (id): ");
+		resource.setId( input.nextLine() );
 		
 		User responsible = null;
 		boolean unable = true;
 		System.out.println("Digite o login do usuário responsável pelo recurso");
 		while(responsible == null || unable) {
-			int index = searchUser( input.nextLine() );
+			responsible = database.searchUser( input.nextLine() );
 			
-			if(index == -1)
+			if(responsible == null)
 				System.out.println("Usuário não encontrado! Tente novamente.");
 			else {
-				responsible = users.get(index);
-				if(responsible.getType() != TypeUser.ADM && responsible.getType() != TypeUser.PROFESSOR && responsible.getType() != TypeUser.RESEARCHER ) {
-					System.out.println("Somente são permitidos serem responsáveis pelo recurso: um professor, um pesquisador ou um adminstrador do sistema. Tente novamente.");
-				} else {
+				if(responsible instanceof Administrator && responsible instanceof Professor && responsible instanceof Researcher ) {
 					unable = false;
+				} else {
+					System.out.println("Somente são permitidos serem responsáveis pelo recurso: um professor, um pesquisador ou um adminstrador do sistema. Tente novamente.");
 				}
 			}
 
@@ -354,29 +304,51 @@ public class UI {
 		
 		resource.setResponsible(responsible);
 		
-		resources.add(resource);
+		database.addResource(resource);
 		
 		System.out.println("Feito!\n");
 		
 	}
 
-	private static void deleteUser() {
+	private void deleteUser() {
 		
 		System.out.println("Digite o login do usuário: ");
-		int index = searchUser( input.nextLine() );
+		User user = database.searchUser( input.nextLine() );
 		
-		if(index == -1)
+		if(user == null)
 			System.out.println("Usuário não encontrado!");
 		else {
-			users.remove(index);
+			database.removeUser(user);
 			System.out.println("Feito!\n");
 		}
 		
 	}
 
-	private static void createUser() {
+	private void createUser() {
 		
-		User user = new User();
+		System.out.println("Digite o tipo: \n"
+				 + "1 - Administrador\n"
+				 + "2 - Professor\n"
+				 + "3 - Pesquisador\n"
+				 + "4 - Aluno de doutorado\n"
+				 + "5 - Aluno de mestrado\n"
+				 + "6 - Aluno de graduação");
+		int type = Integer.valueOf( input.nextLine() );
+		
+		User user;
+		if(type == 1)
+			user = new Administrator();
+		else if(type == 2)
+			user = new Professor();
+		else if(type == 3)
+			user = new Researcher();
+		else if(type == 3)
+			user = new Doctorate();
+		else if(type == 3)
+			user = new Masters();
+		else
+			user = new Undergraduate();
+		
 		System.out.println("Digite o nome: ");
 		user.setName( input.nextLine() );
 		System.out.println("Digite o email: ");
@@ -385,87 +357,35 @@ public class UI {
 		user.setLogin( input.nextLine() );
 		System.out.println("Digite a senha: ");
 		user.setPassword( input.nextLine() );
-		System.out.println("Digite o tipo: \n"
-						 + "1 - Administrador\n"
-						 + "2 - Professor\n"
-						 + "3 - Pesquisador\n"
-						 + "4 - Aluno de doutorado\n"
-						 + "5 - Aluno de mestrado\n"
-						 + "6 - Aluno de graduação");
-		int type = Integer.valueOf( input.nextLine() );
 		
-		if(type == 1)
-			user.setType(TypeUser.ADM);
-		else if(type == 2)
-			user.setType(TypeUser.PROFESSOR);
-		else if(type == 3)
-			user.setType(TypeUser.RESEARCHER);
-		else if(type == 3)
-			user.setType(TypeUser.DOCTORATE);
-		else if(type == 3)
-			user.setType(TypeUser.MASTERS);
-		else
-			user.setType(TypeUser.UNDERGRADUATE);
-		
-		users.add(user);
+		database.addUser(user);
 		
 		System.out.println("Feito!\n");
 		
 	}
 
-	private void confirmAllocation(ArrayList<Integer> resourcesToConfirm) {
+	private void confirmAllocation(ArrayList<Allocation> resourcesToConfirm) {
 		
-		int cod = changeStatus(resourcesToConfirm, Status.IN_PROGRESS);
-		id_in_progress.add(cod);
-		id_allocated.remove(cod);
-		
-	}
-
-	private static int searchResource(String id) {
-		
-		int size = resources.size();
-		Resource res;
-		for(int i=0; i<size; i++) {
-			res = resources.get(i);
-			if(res.getId().equals(id)) {
-				return i;
-			}
-		}
-		
-		return -1;
-	}
-
-	private static int searchUser(String userLogin) {
-		
-		int size = users.size();
-		User user;
-		for(int i=0; i<size; i++) {
-			user = users.get(i);
-			if(user.getLogin().equals(userLogin))
-				return i;
-		}
-		
-		return -1;
+		ArrayList<Allocation> list = database.getAllocated();
+		int cod  = selectAllocationToChange(list);
+		database.changeToInProgress(list.get(cod));
 		
 	}
 
-	public static void allocateResource() {
+	public void allocateResource() {
 		
 		Allocation newAlloc = new Allocation();
 				
-		newAlloc.setStatus(Status.IN_PROCESS);
 		newAlloc.setRequester(user_logged);
 		
 		System.out.println("Digite o id do recurso");
 		String id = input.nextLine();
-		int index = searchResource(id);
+		Resource resource = database.searchResource(id);
 		
-		if(index == -1) {
+		if(resource == null) {
 			System.out.println("Recurso não encontrado!\n");
 			return;
 		}
-		
-		Resource resource = resources.get(index);
 			
 		newAlloc.setResource(resource);
 		
@@ -481,7 +401,26 @@ public class UI {
 		System.out.println("Digite a hora de término [formato hh:mm]: ");
 		newAlloc.setTimeEnd( new Time( input.nextLine() ) );
 			
-		Activity activity = new Activity();
+		Activity activity;
+		
+		System.out.println("Digite a tipo da atividade: \n"
+				 + "1 - Aula tradicional\n"
+				 + "2 - Apresentação\n"
+				 + "3 - Laboratório");
+		int type = Integer.valueOf( input.nextLine() );
+			
+		if(type == 1 && user_logged instanceof Professor) 
+			activity = new Class();
+		else if(type == 2) 
+			activity = new Presentation();
+		else if(type == 3 && user_logged instanceof Professor)
+			activity = new ActLaboratory();
+		else {
+			System.out.println("Atividade nao permitida!");
+			return;
+		}
+		
+		
 		System.out.println("Digite o título da atividade a ser realizada: ");
 		activity.setTitle( input.nextLine() );
 			
@@ -498,41 +437,21 @@ public class UI {
 		for(int i=0; i<num_part; i++) {
 			System.out.println("Digite o login do "+(i+1)+"º participante");
 			userLogin = input.nextLine();
-			index = searchUser(userLogin);
+			User user = database.searchUser(userLogin);
 			
-			if(index == -1)
+			if(user == null){
 				System.out.println("Usuário não encontrado\n");
-			else {
-				activity.addParticipants(users.get(index));
+				i--;
+			}else {
+				activity.addParticipants(user);
 			}
 		}
-			
-		System.out.println("Digite a tipo da atividade: \n"
-						 + "1 - Aula tradicional\n"
-						 + "2 - Apresentação\n"
-						 + "3 - Laboratório");
-		int type = Integer.valueOf( input.nextLine() );
-			
-		if(type == 1 && user_logged.getType() == TypeUser.PROFESSOR) 
-			activity.setType(TypeAct.CLASS);
-		else if(type == 2) 
-			activity.setType(TypeAct.PRESANTATION);
-		else if(type == 3 && user_logged.getType() == TypeUser.PROFESSOR)
-			activity.setType(TypeAct.LABORATORY);
 		
-		else {
-			System.out.println("Atividade não permitida!\n");
-			return;
-		}
-		
-		activities.add(activity);
+		database.addActivity(activity);
 		newAlloc.setActivity(activity);
-		allocations.add(newAlloc);
-		index = allocations.size() - 1;
-		if(user_logged.getType() == TypeUser.ADM)
-			id_allocated.add(index);
-		else
-			id_alloc_in_process.add(index);
+		database.addAllocation(newAlloc);
+		if(user_logged instanceof Administrator)
+			database.changeToAllocated(newAlloc);
 		
 		System.out.println("\nFeito!\n");
 		
@@ -541,5 +460,3 @@ public class UI {
 
 }
 
-
-}

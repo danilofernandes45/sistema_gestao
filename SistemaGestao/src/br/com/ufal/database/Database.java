@@ -3,6 +3,9 @@ package br.com.ufal.database;
 import java.util.ArrayList;
 
 import br.com.ufal.activity.Activity;
+import br.com.ufal.activity.Presentation;
+import br.com.ufal.activity.ActLaboratory;
+import br.com.ufal.activity.Class;
 import br.com.ufal.allocation.Allocation;
 import br.com.ufal.resource.Resource;
 import br.com.ufal.user.User;
@@ -78,6 +81,14 @@ public class Database {
 		return null;
 	}
 	
+	public void removeResource(Resource res) {
+		resources.remove(res);
+	}
+	
+	public void removeUser(User user) {
+		users.remove(user);
+	}
+	
 	public ArrayList<Allocation> getAllocationsByResource(Resource res) {
 		
 		ArrayList<Allocation> allocations = new ArrayList<>();
@@ -99,6 +110,34 @@ public class Database {
 		
 		for(Allocation alloc : alloc_completed) {
 			if(res.equals( alloc.getResource() ))
+				allocations.add(alloc);
+		}
+		
+		return allocations;
+		
+	}
+	
+	public ArrayList<Allocation> getAllocationsByRequester(User user) {
+		
+		ArrayList<Allocation> allocations = new ArrayList<>();
+		
+		for(Allocation alloc : alloc_in_process) {
+			if(user.equals( alloc.getRequester() ))
+				allocations.add(alloc);
+		}
+		
+		for(Allocation alloc : allocated) {
+			if(user.equals( alloc.getRequester()))
+				allocations.add(alloc);
+		}
+		
+		for(Allocation alloc : alloc_in_progress) {
+			if(user.equals( alloc.getRequester()))
+				allocations.add(alloc);
+		}
+		
+		for(Allocation alloc : alloc_completed) {
+			if(user.equals( alloc.getRequester()))
 				allocations.add(alloc);
 		}
 		
@@ -172,6 +211,64 @@ public class Database {
 	public ArrayList<Allocation> getAllocCompleted() {
 		return alloc_completed;
 	}
+	
+	public int getSizeAllocInProcess() {
+		return alloc_in_process.size();
+	}
 
+	public int getSizeAllocated() {
+		return allocated.size();
+	}
+
+	public int getSizeAllocInProgress() {
+		return alloc_in_progress.size();
+	}
+
+	public int getSizeAllocCompleted() {
+		return alloc_completed.size();
+	}
+	
+	public int getSizeUsers() {
+		return users.size();
+	}
+	
+	public int getAmountClasses(){
+		
+		int count = 0;
+		for(Activity act : activities) {
+			
+			if(act instanceof Class)
+				count++;
+		}
+		
+		return count;
+		
+	}
+	
+	public int getAmountPresentations(){
+		
+		int count = 0;
+		for(Activity act : activities) {
+			
+			if(act instanceof Presentation)
+				count++;
+		}
+		
+		return count;
+		
+	}
+	
+	public int getAmountActLaboratories(){
+		
+		int count = 0;
+		for(Activity act : activities) {
+			
+			if(act instanceof ActLaboratory)
+				count++;
+		}
+		
+		return count;
+		
+	}
 	
 }
